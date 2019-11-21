@@ -1,0 +1,86 @@
+$(document).ready(function(){
+	$.ajax({
+		url: "/tweets.asp",
+		dataType: "json",
+		success: function (data) {
+			var count = 1;
+			for (tt in data) {
+				$('#twitter_feed_rgt_' + count).append('<p>' + linkHashtags(replaceLinks(data[tt].text)) + '</p>');
+				$('#twitter_feed_time_' + count).append('<a target="_blank" href="https://twitter.com/#!/graham_r_miller/status/'+data[tt].id_str+'"><i class="fa fa-twitter"></i> ' + calculateSince(data[tt].created_at) + '</a>');
+				count++;
+			}
+
+		}
+	});
+});
+
+function replaceLinks(text) {
+	var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+	text = text.replace(exp, "<a target=\"_blank\" rel=\"nofollow\" href='$1'>$1</a>");
+
+	var exp2 = /(^|\s)@(\w+)/g;
+	return text.replace(exp2, "$1<a target=\"_blank\" rel=\"nofollow\" href=\"http://www.twitter.com/$2\">@$2</a>");
+}
+
+hashtag_regexp = /#([a-zA-Z0-9]+)/g;
+
+function linkHashtags(text) {
+    return text.replace(
+        hashtag_regexp,
+        '<a target=\"_blank\" class="hashtag" href="https://twitter.com/search?q=$1&src=hash">#$1</a>'
+    );
+}
+
+
+function calculateSince(datetime) {
+    var tTime=new Date(datetime);
+    var cTime=new Date();
+    var sinceMin=Math.round((cTime-tTime)/60000);
+    if(sinceMin==0)
+{
+        var sinceSec=Math.round((cTime-tTime)/1000);
+        if(sinceSec<10)
+          var since='less than 10 seconds ago';
+        else if(sinceSec<20)
+          var since='less than 20 seconds ago';
+        else
+          var since='half a minute ago';
+    }
+    else if(sinceMin==1)
+    {
+        var sinceSec=Math.round((cTime-tTime)/1000);
+        if(sinceSec==30)
+          var since='half a minute ago';
+        else if(sinceSec<60)
+          var since='less than a minute ago';
+        else
+          var since='1 minute ago';
+    }
+    else if(sinceMin<45)
+        var since=sinceMin+' minutes ago';
+    else if(sinceMin>44&&sinceMin<60)
+        var since='about 1 hour ago';
+    else if(sinceMin<1440){
+        var sinceHr=Math.round(sinceMin/60);
+    if(sinceHr==1)
+      var since='about 1 hour ago';
+    else
+      var since='about '+sinceHr+' hours ago';
+    }
+    else if(sinceMin>1439&&sinceMin<2880)
+        var since='1 day ago';
+    else
+    {
+        var sinceDay=Math.round(sinceMin/1440);
+        var since=sinceDay+' days ago';
+    }
+    return since;
+};
+
+// from http://widgets.twimg.com/j/1/widget.js
+var K = function () {
+    var a = navigator.userAgent;
+    return {
+        ie: a.match(/MSIE\s([^;]*)/)
+    }
+}();
